@@ -1,79 +1,49 @@
-var express = require('express');
-var passport = require('passport');
-var Strategy = require('passport-local').Strategy;
-var db = require('./models');
+const express = require('express');
+const session = require('express-session');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const passport = require('passport');
+const path = require('path');
+const cors = require('cors');
 
+mongoose.Promise = global.Promise;
 
 // Setting up port
 var PORT = process.env.PORT || 8080;
 var app = express();
 
-app.set('views', __dirname + '/views');
-app.set('view engine', 'ejs');
+app.use(cors());
+app.use(require('morgan')('dev'));
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(session({ secret: 'secret', resave: false, saveUninitialized: false }));
 
+const dbConfig = require('./config/dbconfig.js');
 
-passport.use(new Strategy(
-  function(username, password, cb) {
-    db.users.findByUsername(username, function(err, user) {
-      if (err) { return cb(err); }
-      if (!user) { return cb(null, false); }
-      if (user.password != password) { return cb(null, false); }
-      return cb(null, user);
-    });
-  }));
-
-passport.serializeUser(function(user, cb) {
-  cb(null, user.id);
+mongoose.connect(dbConfig.url, {
+  useNewUrlParser: true
+}).then(() => {
+  console.log("successfuly connected to the database");
+}).catch(err => {
+  console.log('couuld not connect to database . Exiting now...',err);
+  process.exit();
 });
 
-passport.deserializeUser(function(id, cb) {
-  db.users.findById(id, function (err, user) {
-    if (err) { return cb(err); }
-    cb(null, user);
-  });
-});
+mongoose.set('debug', true);
 
 
-app.use(require('morgan')('combined'));
-app.use(require('body-parser').urlencoded({ extended: true }));
-app.use(require('express-session')({ secret: 'keyboard cat', resave: false, saveUninitialized: false }));
 
 // Initialize Passport and restore authentication state, if any, from the
 // session.
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Define routes.
-app.get('/',
-  function(req, res) {
-    res.render('home', { user: req.user });
-  });
 
-app.get('/login',
-  function(req, res){
-  	console.log(req.query)
-    res.render('login',{ fail: req.query.fail});
-  });
-  
-app.post('/login', 
-  passport.authenticate('local', { failureRedirect: '/login?fail=true' }),
-  function(req, res) {
-    res.redirect('/');
-  });
-  
-app.get('/logout',
-  function(req, res){
-    req.logout();
-    res.redirect('/');
-  });
+require('./models/Users');
+app.use(require('./routes'));
+require('./config/passport');
 
-app.get('/profile',
-  require('connect-ensure-login').ensureLoggedIn(),
-  function(req, res){
-    res.render('profile', { user: req.user });
-  });
-
-//
 //this will listen to and show all activities on our terminal to 
 //let us know what is happening in our app
 app.listen(PORT, function() {
