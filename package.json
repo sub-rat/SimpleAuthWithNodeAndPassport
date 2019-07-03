@@ -19,8 +19,11 @@
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.2.8",
     "morgan": "^1.9.1",
+    "nodemon": "^1.19.1",
     "passport": "^0.4.0",
     "passport-local": "^1.0.0",
-    "sequelize": "^5.8.12"
+    "sequelize": "^5.8.12",
+    "validator": "^11.0.0",
+    "mongoose-validator": "^2.1.0"
   }
 }

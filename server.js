@@ -9,7 +9,7 @@ const cors = require('cors');
 mongoose.Promise = global.Promise;
 
 // Setting up port
-var PORT = process.env.PORT || 8080;
+var PORT = process.env.PORT || 8000;
 var app = express();
 
 app.use(cors());
