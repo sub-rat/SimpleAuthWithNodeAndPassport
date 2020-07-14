@@ -21,7 +21,7 @@ app.use(session({ secret: 'secret', resave: false, saveUninitialized: false }));
 
 const dbConfig = require('./config/dbconfig.js');
 
-mongoose.connect(dbConfig.url, 
+mongoose.connect(dbConfig.url,{ 
   useNewUrlParser: true
 }).then(() => {
   console.log("successfuly connected to the database");
